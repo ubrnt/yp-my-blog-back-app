@@ -8,6 +8,7 @@ import ru.practicum.blog.domain.Post;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 @Repository
 public class JdbcNativePostRepository implements PostRepository {
@@ -20,9 +21,11 @@ public class JdbcNativePostRepository implements PostRepository {
 
     @Override
     public Post findById(long id) {
-        return jdbc.queryForObject(
+        Post post = jdbc.queryForObject(
                 "SELECT id, title, text, image, likes_count FROM posts WHERE id = ?",
                 this::mapRow, id);
+        post.setTags(findTagsByPostId(id));
+        return post;
     }
 
     @Override
@@ -41,6 +44,7 @@ public class JdbcNativePostRepository implements PostRepository {
         }, keyHolder);
 
         post.setId(keyHolder.getKey().longValue());
+        saveTags(post.getId(), post.getTags());
         return post;
     }
 
@@ -48,6 +52,8 @@ public class JdbcNativePostRepository implements PostRepository {
     public void update(Post post) {
         jdbc.update("UPDATE posts SET title = ?, text = ? WHERE id = ?",
                 post.getTitle(), post.getText(), post.getId());
+        jdbc.update("DELETE FROM post_tags WHERE post_id = ?", post.getId());
+        saveTags(post.getId(), post.getTags());
     }
 
     @Override
@@ -69,6 +75,17 @@ public class JdbcNativePostRepository implements PostRepository {
     @Override
     public void saveImage(long id, byte[] image) {
         jdbc.update("UPDATE posts SET image = ? WHERE id = ?", image, id);
+    }
+
+    private void saveTags(long id, List<String> tags) {
+        if (tags == null || tags.isEmpty()) return;
+        for (String tag : tags) {
+            jdbc.update("INSERT INTO post_tags (post_id, tag) VALUES (?, ?)", id, tag);
+        }
+    }
+
+    private List<String> findTagsByPostId(long id) {
+        return jdbc.queryForList("SELECT tag FROM post_tags WHERE post_id = ?", String.class, id);
     }
 
     private Post mapRow(ResultSet rs, int rowNum) throws SQLException {

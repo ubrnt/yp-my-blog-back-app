@@ -10,6 +10,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import ru.practicum.blog.configuration.DataSourceConfiguration;
 import ru.practicum.blog.domain.Post;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringJUnitConfig(classes = {DataSourceConfiguration.class, JdbcNativePostRepository.class})
@@ -76,6 +78,34 @@ class JdbcNativePostRepositoryTest {
 
         likes = postRepository.addLike(saved.getId());
         assertEquals(2, likes);
+    }
+
+    @Test
+    void saveWithTags() {
+        Post p = makePost("Tagged", "...");
+        p.setTags(List.of("java", "spring"));
+        Post saved = postRepository.save(p);
+
+        Post found = postRepository.findById(saved.getId());
+        assertEquals(2, found.getTags().size());
+        assertTrue(found.getTags().containsAll(List.of("java", "spring")));
+    }
+
+    @Test
+    void updateWithTags() {
+        Post p = makePost("Before", "...");
+        p.setTags(List.of("old"));
+        Post saved = postRepository.save(p);
+
+        saved.setTitle("After");
+        saved.setTags(List.of("new1", "new2"));
+        postRepository.update(saved);
+
+        Post found = postRepository.findById(saved.getId());
+        assertEquals("After", found.getTitle());
+        assertEquals(2, found.getTags().size());
+        assertTrue(found.getTags().containsAll(List.of("new1", "new2")));
+        assertFalse(found.getTags().contains("old"));
     }
 
     @Test
