@@ -2,8 +2,14 @@ package ru.practicum.blog.repository;
 
 import ru.practicum.blog.domain.Post;
 
+import java.util.List;
+
 public interface PostRepository {
     Post findById(long id);
+
+    List<Post> findAll(int pageSize, int offset);
+
+    int countAll();
 
     Post save(Post post);
 

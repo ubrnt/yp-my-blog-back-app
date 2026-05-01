@@ -109,6 +109,43 @@ class JdbcNativePostRepositoryTest {
     }
 
     @Test
+    void findAllWithPagination() {
+        for (int i = 1; i <= 5; i++) {
+            postRepository.save(makePost("Post " + i, "Text"));
+        }
+
+        List<Post> page = postRepository.findAll(2, 0);
+        assertEquals(2, page.size());
+
+        int total = postRepository.countAll();
+        assertEquals(5, total);
+    }
+
+    @Test
+    void findAllWithTags() {
+        Post p = makePost("Tagged post", "...");
+        p.setTags(List.of("java", "spring"));
+        postRepository.save(p);
+
+        List<Post> posts = postRepository.findAll(10, 0);
+        assertEquals(1, posts.size());
+        assertTrue(posts.get(0).getTags().containsAll(List.of("java", "spring")));
+    }
+
+    @Test
+    void commentsCount() {
+        Post saved = postRepository.save(makePost("Commented", "..."));
+        jdbc.update("INSERT INTO comments (text, post_id) VALUES (?, ?)", "c1", saved.getId());
+        jdbc.update("INSERT INTO comments (text, post_id) VALUES (?, ?)", "c2", saved.getId());
+
+        Post found = postRepository.findById(saved.getId());
+        assertEquals(2, found.getCommentsCount());
+
+        List<Post> posts = postRepository.findAll(10, 0);
+        assertEquals(2, posts.get(0).getCommentsCount());
+    }
+
+    @Test
     void saveAndFindImage() {
         Post saved = postRepository.save(makePost("With image", "..."));
         byte[] image = {1, 2, 3, 4, 5};

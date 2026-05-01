@@ -8,7 +8,7 @@ import ru.practicum.blog.domain.Post;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.*;
 
 @Repository
 public class JdbcNativePostRepository implements PostRepository {
@@ -21,11 +21,27 @@ public class JdbcNativePostRepository implements PostRepository {
 
     @Override
     public Post findById(long id) {
-        Post post = jdbc.queryForObject(
-                "SELECT id, title, text, image, likes_count FROM posts WHERE id = ?",
-                this::mapRow, id);
+        String sql = "SELECT p.id, p.title, p.text, p.image, p.likes_count, " +
+                "(SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments_count " +
+                "FROM posts p WHERE p.id = ?";
+        Post post = jdbc.queryForObject(sql, this::mapRow, id);
         post.setTags(findTagsByPostId(id));
         return post;
+    }
+
+    @Override
+    public List<Post> findAll(int pageSize, int offset) {
+        String sql = "SELECT p.id, p.title, p.text, p.image, p.likes_count, " +
+                "(SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments_count " +
+                "FROM posts p ORDER BY p.id DESC LIMIT ? OFFSET ?";
+        List<Post> posts = jdbc.query(sql, this::mapRow, pageSize, offset);
+        loadTags(posts);
+        return posts;
+    }
+
+    @Override
+    public int countAll() {
+        return jdbc.queryForObject("SELECT COUNT(*) FROM posts", Integer.class);
     }
 
     @Override
@@ -88,6 +104,24 @@ public class JdbcNativePostRepository implements PostRepository {
         return jdbc.queryForList("SELECT tag FROM post_tags WHERE post_id = ?", String.class, id);
     }
 
+    private void loadTags(List<Post> posts) {
+        if (posts.isEmpty()) return;
+
+        List<Long> ids = posts.stream().map(Post::getId).toList();
+        String placeholders = String.join(",", Collections.nCopies(ids.size(), "?"));
+        String sql = "SELECT post_id, tag FROM post_tags WHERE post_id IN (" + placeholders + ")";
+
+        Map<Long, List<String>> tagsByPostId = new HashMap<>();
+        jdbc.query(sql, rs -> {
+            long postId = rs.getLong("post_id");
+            tagsByPostId.computeIfAbsent(postId, k -> new ArrayList<>()).add(rs.getString("tag"));
+        }, ids.toArray());
+
+        for (Post post : posts) {
+            post.setTags(tagsByPostId.getOrDefault(post.getId(), List.of()));
+        }
+    }
+
     private Post mapRow(ResultSet rs, int rowNum) throws SQLException {
         Post post = new Post();
         post.setId(rs.getLong("id"));
@@ -95,6 +129,7 @@ public class JdbcNativePostRepository implements PostRepository {
         post.setText(rs.getString("text"));
         post.setImage(rs.getBytes("image"));
         post.setLikesCount(rs.getInt("likes_count"));
+        post.setCommentsCount(rs.getInt("comments_count"));
         return post;
     }
 }
