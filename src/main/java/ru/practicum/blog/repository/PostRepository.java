@@ -7,5 +7,13 @@ public interface PostRepository {
 
     Post save(Post post);
 
+    void update(Post post);
+
     void deleteById(long id);
+
+    int addLike(long id);
+
+    byte[] findImage(long id);
+
+    void saveImage(long id, byte[] image);
 }

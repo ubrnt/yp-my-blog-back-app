@@ -45,8 +45,30 @@ public class JdbcNativePostRepository implements PostRepository {
     }
 
     @Override
+    public void update(Post post) {
+        jdbc.update("UPDATE posts SET title = ?, text = ? WHERE id = ?",
+                post.getTitle(), post.getText(), post.getId());
+    }
+
+    @Override
     public void deleteById(long id) {
         jdbc.update("DELETE FROM posts WHERE id = ?", id);
+    }
+
+    @Override
+    public int addLike(long id) {
+        jdbc.update("UPDATE posts SET likes_count = likes_count + 1 WHERE id = ?", id);
+        return jdbc.queryForObject("SELECT likes_count FROM posts WHERE id = ?", Integer.class, id);
+    }
+
+    @Override
+    public byte[] findImage(long id) {
+        return jdbc.queryForObject("SELECT image FROM posts WHERE id = ?", byte[].class, id);
+    }
+
+    @Override
+    public void saveImage(long id, byte[] image) {
+        jdbc.update("UPDATE posts SET image = ? WHERE id = ?", image, id);
     }
 
     private Post mapRow(ResultSet rs, int rowNum) throws SQLException {

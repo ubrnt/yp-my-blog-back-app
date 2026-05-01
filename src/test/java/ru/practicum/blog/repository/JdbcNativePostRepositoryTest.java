@@ -46,11 +46,45 @@ class JdbcNativePostRepositoryTest {
     }
 
     @Test
+    void updatePost() {
+        Post saved = postRepository.save(makePost("Old title", "Old text"));
+
+        saved.setTitle("New title");
+        saved.setText("New text");
+        postRepository.update(saved);
+
+        Post found = postRepository.findById(saved.getId());
+        assertEquals("New title", found.getTitle());
+        assertEquals("New text", found.getText());
+    }
+
+    @Test
     void deleteById() {
         Post saved = postRepository.save(makePost("To delete", "..."));
         postRepository.deleteById(saved.getId());
 
         assertThrows(EmptyResultDataAccessException.class,
                 () -> postRepository.findById(saved.getId()));
+    }
+
+    @Test
+    void addLike() {
+        Post saved = postRepository.save(makePost("Likeable", "..."));
+
+        int likes = postRepository.addLike(saved.getId());
+        assertEquals(1, likes);
+
+        likes = postRepository.addLike(saved.getId());
+        assertEquals(2, likes);
+    }
+
+    @Test
+    void saveAndFindImage() {
+        Post saved = postRepository.save(makePost("With image", "..."));
+        byte[] image = {1, 2, 3, 4, 5};
+        postRepository.saveImage(saved.getId(), image);
+
+        byte[] loaded = postRepository.findImage(saved.getId());
+        assertArrayEquals(image, loaded);
     }
 }
