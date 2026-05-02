@@ -10,6 +10,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import ru.practicum.blog.configuration.DataSourceConfiguration;
 import ru.practicum.blog.domain.Comment;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringJUnitConfig(classes = {DataSourceConfiguration.class, JdbcNativeCommentRepository.class})
@@ -49,6 +51,16 @@ class JdbcNativeCommentRepositoryTest {
         Comment found = commentRepository.findById(saved.getId());
         assertEquals("Nice post!", found.getText());
         assertEquals(postId, found.getPostId());
+    }
+
+    @Test
+    void findByPostId() {
+        long postId = createPost();
+        commentRepository.save(makeComment("First", postId));
+        commentRepository.save(makeComment("Second", postId));
+
+        List<Comment> comments = commentRepository.findByPostId(postId);
+        assertEquals(2, comments.size());
     }
 
     @Test

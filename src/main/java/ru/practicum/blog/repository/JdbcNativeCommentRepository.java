@@ -8,6 +8,7 @@ import ru.practicum.blog.domain.Comment;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 @Repository
 public class JdbcNativeCommentRepository implements CommentRepository {
@@ -44,6 +45,12 @@ public class JdbcNativeCommentRepository implements CommentRepository {
     @Override
     public void deleteById(long id) {
         jdbc.update("DELETE FROM comments WHERE id = ?", id);
+    }
+
+    @Override
+    public List<Comment> findByPostId(long postId) {
+        return jdbc.query("SELECT id, text, post_id FROM comments WHERE post_id = ?",
+                this::mapRow, postId);
     }
 
     private Comment mapRow(ResultSet rs, int rowNum) throws SQLException {
