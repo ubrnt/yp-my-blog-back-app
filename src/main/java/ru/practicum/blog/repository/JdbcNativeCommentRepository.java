@@ -53,6 +53,12 @@ public class JdbcNativeCommentRepository implements CommentRepository {
                 this::mapRow, postId);
     }
 
+    @Override
+    public void update(Comment comment) {
+        jdbc.update("UPDATE comments SET text = ? WHERE id = ?",
+                comment.getText(), comment.getId());
+    }
+
     private Comment mapRow(ResultSet rs, int rowNum) throws SQLException {
         Comment comment = new Comment();
         comment.setId(rs.getLong("id"));

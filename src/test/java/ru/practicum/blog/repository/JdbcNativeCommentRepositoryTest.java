@@ -64,6 +64,18 @@ class JdbcNativeCommentRepositoryTest {
     }
 
     @Test
+    void updateComment() {
+        long postId = createPost();
+        Comment saved = commentRepository.save(makeComment("Old text", postId));
+
+        saved.setText("Updated text");
+        commentRepository.update(saved);
+
+        Comment found = commentRepository.findById(saved.getId());
+        assertEquals("Updated text", found.getText());
+    }
+
+    @Test
     void deleteComment() {
         long postId = createPost();
         Comment saved = commentRepository.save(makeComment("To delete", postId));
