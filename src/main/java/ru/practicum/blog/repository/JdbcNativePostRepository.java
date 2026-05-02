@@ -30,18 +30,69 @@ public class JdbcNativePostRepository implements PostRepository {
     }
 
     @Override
-    public List<Post> findAll(int pageSize, int offset) {
-        String sql = "SELECT p.id, p.title, p.text, p.image, p.likes_count, " +
-                "(SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments_count " +
-                "FROM posts p ORDER BY p.id DESC LIMIT ? OFFSET ?";
-        List<Post> posts = jdbc.query(sql, this::mapRow, pageSize, offset);
+    public List<Post> findAll(String titleSubstring, List<String> tags, int pageSize, int offset) {
+        var sql = new StringBuilder();
+        var params = new ArrayList<>();
+
+        sql.append("SELECT p.id, p.title, p.text, p.image, p.likes_count, ");
+        sql.append("(SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments_count ");
+        sql.append("FROM posts p ");
+
+        if (tags != null && !tags.isEmpty()) {
+            sql.append("JOIN post_tags pt ON pt.post_id = p.id AND pt.tag IN (");
+            sql.append(String.join(",", Collections.nCopies(tags.size(), "?")));
+            sql.append(") ");
+            params.addAll(tags);
+        }
+
+        if (titleSubstring != null && !titleSubstring.isBlank()) {
+            sql.append("WHERE LOWER(p.title) LIKE LOWER(?) ");
+            params.add("%" + titleSubstring + "%");
+        }
+
+        if (tags != null && !tags.isEmpty()) {
+            sql.append("GROUP BY p.id, p.title, p.text, p.image, p.likes_count ");
+            sql.append("HAVING COUNT(DISTINCT pt.tag) = ? ");
+            params.add(tags.size());
+        }
+
+        sql.append("ORDER BY p.id DESC LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add(offset);
+
+        List<Post> posts = jdbc.query(sql.toString(), this::mapRow, params.toArray());
         loadTags(posts);
         return posts;
     }
 
     @Override
-    public int countAll() {
-        return jdbc.queryForObject("SELECT COUNT(*) FROM posts", Integer.class);
+    public int countAll(String titleSubstring, List<String> tags) {
+        var sql = new StringBuilder();
+        var params = new ArrayList<>();
+
+        sql.append("SELECT COUNT(*) FROM (SELECT p.id FROM posts p ");
+
+        if (tags != null && !tags.isEmpty()) {
+            sql.append("JOIN post_tags pt ON pt.post_id = p.id AND pt.tag IN (");
+            sql.append(String.join(",", Collections.nCopies(tags.size(), "?")));
+            sql.append(") ");
+            params.addAll(tags);
+        }
+
+        if (titleSubstring != null && !titleSubstring.isBlank()) {
+            sql.append("WHERE LOWER(p.title) LIKE LOWER(?) ");
+            params.add("%" + titleSubstring + "%");
+        }
+
+        if (tags != null && !tags.isEmpty()) {
+            sql.append("GROUP BY p.id ");
+            sql.append("HAVING COUNT(DISTINCT pt.tag) = ? ");
+            params.add(tags.size());
+        }
+
+        sql.append(") AS filtered");
+
+        return jdbc.queryForObject(sql.toString(), Integer.class, params.toArray());
     }
 
     @Override

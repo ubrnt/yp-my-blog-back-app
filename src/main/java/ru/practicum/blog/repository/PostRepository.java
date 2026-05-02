@@ -7,9 +7,9 @@ import java.util.List;
 public interface PostRepository {
     Post findById(long id);
 
-    List<Post> findAll(int pageSize, int offset);
+    List<Post> findAll(String titleSubstring, List<String> tags, int pageSize, int offset);
 
-    int countAll();
+    int countAll(String titleSubstring, List<String> tags);
 
     Post save(Post post);
 

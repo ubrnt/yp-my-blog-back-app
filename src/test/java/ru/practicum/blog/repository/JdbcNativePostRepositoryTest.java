@@ -114,10 +114,10 @@ class JdbcNativePostRepositoryTest {
             postRepository.save(makePost("Post " + i, "Text"));
         }
 
-        List<Post> page = postRepository.findAll(2, 0);
+        List<Post> page = postRepository.findAll(null, null, 2, 0);
         assertEquals(2, page.size());
 
-        int total = postRepository.countAll();
+        int total = postRepository.countAll(null, null);
         assertEquals(5, total);
     }
 
@@ -127,7 +127,7 @@ class JdbcNativePostRepositoryTest {
         p.setTags(List.of("java", "spring"));
         postRepository.save(p);
 
-        List<Post> posts = postRepository.findAll(10, 0);
+        List<Post> posts = postRepository.findAll(null, null, 10, 0);
         assertEquals(1, posts.size());
         assertTrue(posts.get(0).getTags().containsAll(List.of("java", "spring")));
     }
@@ -141,8 +141,58 @@ class JdbcNativePostRepositoryTest {
         Post found = postRepository.findById(saved.getId());
         assertEquals(2, found.getCommentsCount());
 
-        List<Post> posts = postRepository.findAll(10, 0);
+        List<Post> posts = postRepository.findAll(null, null, 10, 0);
         assertEquals(2, posts.get(0).getCommentsCount());
+    }
+
+    @Test
+    void findAllByTitleSubstring() {
+        postRepository.save(makePost("Java Tutorial", "..."));
+        postRepository.save(makePost("Spring Guide", "..."));
+        postRepository.save(makePost("Java Spring", "..."));
+
+        List<Post> results = postRepository.findAll("java", null, 10, 0);
+        assertEquals(2, results.size());
+
+        int count = postRepository.countAll("java", null);
+        assertEquals(2, count);
+    }
+
+    @Test
+    void findAllByTags() {
+        Post p1 = makePost("Post 1", "...");
+        p1.setTags(List.of("java", "spring"));
+        postRepository.save(p1);
+
+        Post p2 = makePost("Post 2", "...");
+        p2.setTags(List.of("java"));
+        postRepository.save(p2);
+
+        Post p3 = makePost("Post 3", "...");
+        p3.setTags(List.of("python"));
+        postRepository.save(p3);
+
+        List<Post> javaOnly = postRepository.findAll(null, List.of("java"), 10, 0);
+        assertEquals(2, javaOnly.size());
+
+        List<Post> javaAndSpring = postRepository.findAll(null, List.of("java", "spring"), 10, 0);
+        assertEquals(1, javaAndSpring.size());
+        assertEquals("Post 1", javaAndSpring.get(0).getTitle());
+    }
+
+    @Test
+    void findAllByTitleAndTags() {
+        Post p1 = makePost("Java Tutorial", "...");
+        p1.setTags(List.of("java"));
+        postRepository.save(p1);
+
+        Post p2 = makePost("Java Guide", "...");
+        p2.setTags(List.of("python"));
+        postRepository.save(p2);
+
+        List<Post> results = postRepository.findAll("java", List.of("java"), 10, 0);
+        assertEquals(1, results.size());
+        assertEquals("Java Tutorial", results.get(0).getTitle());
     }
 
     @Test
