@@ -1,0 +1,60 @@
+INSERT INTO posts (title, text, likes_count) VALUES
+    ('My first post (Likes: 3, Comments: 3)', 'Hello everyone, this is my first post on this blog. Hope you enjoy it!', 3),
+    ('Morning coffee (Likes: 5, Comments: 2)', 'Nothing beats a good cup of coffee in the morning. Today I tried a new blend from Colombia.', 5),
+    ('Book review (Likes: 1, Comments: 3)', 'Just finished reading "Clean Code" by Robert Martin. Highly recommend it to anyone who writes code for a living.', 1),
+    ('Weekend plans (Likes: 7, Comments: 0)', 'Going hiking this weekend. The weather forecast looks great, should be around 20 degrees.', 7),
+    ('Cooking experiment (Likes: 2, Comments: 2)', 'Tried making homemade pasta for the first time. It turned out surprisingly well, will definitely do it again.', 2),
+    ('Movie night (Likes: 12, Comments: 3)', 'Watched "Interstellar" for the third time. Still one of the best sci-fi movies ever made.', 12),
+    ('New playlist (Likes: 4, Comments: 0)', 'Put together a new playlist for running. Mostly electronic music, keeps the pace up.', 4),
+    ('City walk (Likes: 8, Comments: 2)', 'Explored a new neighborhood today. Found a great little bookshop on the corner of 5th street.', 8),
+    ('Gym progress (Likes: 0, Comments: 1)', 'Finally hit a new personal record on deadlift today. Consistency really pays off.', 0),
+    ('Travel plans (Likes: 6, Comments: 3)', 'Thinking about visiting Portugal this summer. Lisbon looks amazing from all the photos I have seen.', 6),
+    ('No image no post (Likes: 0, Comments: 0)', 'The frontend from sprint 3 of Yandex Practicum middle Java developer course does not support creating posts without an image. FormData.append crashes if imageData is undefined. So always pick an image.', 0)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO post_tags (post_id, tag) VALUES
+    (1, 'intro'),
+    (1, 'blog'),
+    (2, 'coffee'),
+    (2, 'morning'),
+    (3, 'books'),
+    (3, 'review'),
+    (4, 'weekend'),
+    (4, 'hiking'),
+    (5, 'cooking'),
+    (5, 'food'),
+    (6, 'movies'),
+    (6, 'scifi'),
+    (7, 'music'),
+    (7, 'running'),
+    (8, 'city'),
+    (8, 'walks'),
+    (9, 'gym'),
+    (9, 'fitness'),
+    (10, 'travel'),
+    (10, 'plans'),
+    (11, 'frontend'),
+    (11, 'bug')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO comments (post_id, text) VALUES
+    (1, 'Welcome to the blog!'),
+    (1, 'Good luck with the writing!'),
+    (1, 'Subscribed'),
+    (2, 'Try Ethiopian beans next time'),
+    (2, 'I prefer tea honestly'),
+    (3, 'Great book, changed how I write code'),
+    (3, 'Chapter about naming is the best'),
+    (3, 'Try Refactoring by Fowler next'),
+    (5, 'Share the recipe please!'),
+    (5, 'Did you use eggs in the dough?'),
+    (6, 'The docking scene is incredible'),
+    (6, 'Watch Arrival next'),
+    (6, 'Hans Zimmer carried the soundtrack'),
+    (8, 'Love finding hidden gems like that'),
+    (8, 'What city are you in?'),
+    (9, 'Nice, what program are you following?'),
+    (10, 'Porto is worth visiting too'),
+    (10, 'Check out Sintra near Lisbon'),
+    (10, 'Go in September, less tourists')
+ON CONFLICT DO NOTHING;

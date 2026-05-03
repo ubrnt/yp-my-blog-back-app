@@ -19,11 +19,15 @@ public class DataSourceConfiguration {
 
     @Bean
     public DataSource dataSource(
+            @Value("${spring.datasource.driver-class-name:}") String driverClassName,
             @Value("${spring.datasource.url}") String url,
             @Value("${spring.datasource.username}") String username,
             @Value("${spring.datasource.password}") String password
     ) {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        if (!driverClassName.isEmpty()) {
+            dataSource.setDriverClassName(driverClassName);
+        }
         dataSource.setUrl(url);
         dataSource.setUsername(username);
         dataSource.setPassword(password);
@@ -40,6 +44,7 @@ public class DataSourceConfiguration {
         DataSource dataSource = event.getApplicationContext().getBean(DataSource.class);
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
         populator.addScript(new ClassPathResource("schema.sql"));
+        populator.addScript(new ClassPathResource("data.sql"));
         populator.execute(dataSource);
     }
 }

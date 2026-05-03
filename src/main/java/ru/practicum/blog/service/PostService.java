@@ -65,12 +65,13 @@ public class PostService {
         return postMapper.toDto(postRepository.save(post));
     }
 
-    public void update(long id, PostDto postDto) {
+    public PostDto update(long id, PostDto postDto) {
         Post post = postRepository.findById(id);
         post.setTitle(postDto.getTitle());
         post.setText(postDto.getText());
         post.setTags(postDto.getTags());
         postRepository.update(post);
+        return postMapper.toDto(post);
     }
 
     public void deleteById(long id) {

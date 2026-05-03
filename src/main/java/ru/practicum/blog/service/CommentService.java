@@ -36,10 +36,11 @@ public class CommentService {
         return commentMapper.toDto(commentRepository.save(comment));
     }
 
-    public void update(long id, CommentDto commentDto) {
+    public CommentDto update(long id, CommentDto commentDto) {
         Comment comment = commentRepository.findById(id);
         comment.setText(commentDto.getText());
         commentRepository.update(comment);
+        return commentMapper.toDto(comment);
     }
 
     public void deleteById(long id) {
