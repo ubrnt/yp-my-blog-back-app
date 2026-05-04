@@ -1,48 +1,17 @@
 package ru.practicum.blog.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import ru.practicum.blog.configuration.DataSourceConfiguration;
-import ru.practicum.blog.configuration.WebConfiguration;
 import ru.practicum.blog.dto.PostDto;
 
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringJUnitConfig(classes = {WebConfiguration.class, DataSourceConfiguration.class})
-@WebAppConfiguration
-@TestPropertySource(locations = "classpath:test-application.properties")
-class PostControllerTest {
-
-    @Autowired
-    private WebApplicationContext context;
-
-    @Autowired
-    private JdbcTemplate jdbc;
-
-    private MockMvc mockMvc;
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-        jdbc.execute("DELETE FROM post_tags");
-        jdbc.execute("DELETE FROM comments");
-        jdbc.execute("DELETE FROM posts");
-    }
+class PostControllerTest extends BaseControllerTest {
 
     private long createPost(String title, String text, List<String> tags) throws Exception {
         PostDto dto = new PostDto();
@@ -171,7 +140,9 @@ class PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.title").value("New Post"))
-                .andExpect(jsonPath("$.tags", hasSize(2)));
+                .andExpect(jsonPath("$.tags", hasSize(2)))
+                .andExpect(jsonPath("$.likesCount").value(0))
+                .andExpect(jsonPath("$.commentsCount").value(0));
     }
 
     @Test
@@ -216,5 +187,29 @@ class PostControllerTest {
         mockMvc.perform(post("/api/posts/{id}/likes", id))
                 .andExpect(status().isOk())
                 .andExpect(content().string("2"));
+    }
+
+    @Test
+    void saveAndGetImage() throws Exception {
+        long id = createPost("With image", "text", List.of());
+        byte[] image = {1, 2, 3, 4, 5};
+
+        mockMvc.perform(multipart("/api/posts/{id}/image", id)
+                        .file("image", image)
+                        .with(request -> { request.setMethod("PUT"); return request; }))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/posts/{id}/image", id))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", MediaType.IMAGE_PNG_VALUE))
+                .andExpect(content().bytes(image));
+    }
+
+    @Test
+    void getImageNoContent() throws Exception {
+        long id = createPost("No image", "text", List.of());
+
+        mockMvc.perform(get("/api/posts/{id}/image", id))
+                .andExpect(status().isNoContent());
     }
 }

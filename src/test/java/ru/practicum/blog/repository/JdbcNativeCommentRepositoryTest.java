@@ -1,34 +1,18 @@
 package ru.practicum.blog.repository;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import ru.practicum.blog.configuration.DataSourceConfiguration;
 import ru.practicum.blog.domain.Comment;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringJUnitConfig(classes = {DataSourceConfiguration.class, JdbcNativeCommentRepository.class})
-@TestPropertySource(locations = "classpath:test-application.properties")
-class JdbcNativeCommentRepositoryTest {
+class JdbcNativeCommentRepositoryTest extends BaseRepositoryTest {
 
     @Autowired
     private CommentRepository commentRepository;
-
-    @Autowired
-    private JdbcTemplate jdbc;
-
-    @BeforeEach
-    void setUp() {
-        jdbc.execute("DELETE FROM comments");
-        jdbc.execute("DELETE FROM posts");
-    }
 
     private long createPost() {
         jdbc.update("INSERT INTO posts (title, text, likes_count) VALUES ('test', 'text', 0)");

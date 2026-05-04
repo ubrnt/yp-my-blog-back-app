@@ -1,19 +1,7 @@
 package ru.practicum.blog.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import ru.practicum.blog.configuration.DataSourceConfiguration;
-import ru.practicum.blog.configuration.WebConfiguration;
 import ru.practicum.blog.dto.CommentDto;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,26 +9,7 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringJUnitConfig(classes = {WebConfiguration.class, DataSourceConfiguration.class})
-@WebAppConfiguration
-@TestPropertySource(locations = "classpath:test-application.properties")
-class CommentControllerTest {
-
-    @Autowired
-    private WebApplicationContext context;
-
-    @Autowired
-    private JdbcTemplate jdbc;
-
-    private MockMvc mockMvc;
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-        jdbc.execute("DELETE FROM comments");
-        jdbc.execute("DELETE FROM posts");
-    }
+class CommentControllerTest extends BaseControllerTest {
 
     private long createPost() {
         jdbc.update("INSERT INTO posts (title, text, likes_count) VALUES ('test', 'text', 0)");
@@ -123,6 +92,18 @@ class CommentControllerTest {
 
         mockMvc.perform(get("/api/posts/{postId}/comments", postId))
                 .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void getById() throws Exception {
+        long postId = createPost();
+        long commentId = createComment(postId, "My comment");
+
+        mockMvc.perform(get("/api/posts/{postId}/comments/{id}", postId, commentId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(commentId))
+                .andExpect(jsonPath("$.text").value("My comment"))
+                .andExpect(jsonPath("$.postId").value(postId));
     }
 
     @Test
