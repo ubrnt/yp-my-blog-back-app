@@ -17,7 +17,7 @@ A simple blog app backend.
 ./gradlew war
 ```
 
-## Running locally
+## Running locally with cargo
 
 ```bash
 ./gradlew cargoRunLocal

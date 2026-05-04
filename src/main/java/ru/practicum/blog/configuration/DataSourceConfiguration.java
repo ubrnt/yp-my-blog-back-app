@@ -39,12 +39,17 @@ public class DataSourceConfiguration {
         return new JdbcTemplate(dataSource);
     }
 
+    @Value("${spring.datasource.seed:true}")
+    private boolean seed;
+
     @EventListener
     public void populate(ContextRefreshedEvent event) {
         DataSource dataSource = event.getApplicationContext().getBean(DataSource.class);
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
         populator.addScript(new ClassPathResource("schema.sql"));
-        populator.addScript(new ClassPathResource("data.sql"));
+        if (seed) {
+            populator.addScript(new ClassPathResource("data.sql"));
+        }
         populator.execute(dataSource);
     }
 }
