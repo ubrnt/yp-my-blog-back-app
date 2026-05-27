@@ -10,7 +10,7 @@ public class PostMapper {
 
     private final int previewLength;
 
-    public PostMapper(@Value("${post.text.preview-length}") int previewLength) {
+    public PostMapper(@Value("${app.post.text.preview-length}") int previewLength) {
         this.previewLength = previewLength;
     }
 

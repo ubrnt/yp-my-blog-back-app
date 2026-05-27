@@ -1,3 +1,16 @@
 spring:
   application:
     name: blog-backend
+  datasource:
+    driver-class-name: ${YP_SP3_DB_DRIVER:org.h2.Driver}
+    url: ${YP_SP3_DB_URL:jdbc:h2:mem:blog;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1}
+    username: ${YP_SP3_DB_USER:sa}
+    password: ${YP_SP3_DB_PASSWORD:}
+  sql:
+    init:
+      mode: always
+
+app:
+  post:
+    text:
+      preview-length: 128
