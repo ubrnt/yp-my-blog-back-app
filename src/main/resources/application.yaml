@@ -6,6 +6,10 @@ spring:
     url: ${YP_SP3_DB_URL:jdbc:h2:mem:blog;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1}
     username: ${YP_SP3_DB_USER:sa}
     password: ${YP_SP3_DB_PASSWORD:}
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   sql:
     init:
       mode: always

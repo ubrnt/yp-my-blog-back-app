@@ -5,9 +5,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.MDC;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+@Component
 public class RequestLoggingFilter implements Filter {
 
     @Override
